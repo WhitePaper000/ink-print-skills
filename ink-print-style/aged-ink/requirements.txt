@@ -1,4 +1,0 @@
-numpy
-scipy
-Pillow
-# also needs ffmpeg on PATH for videos

@@ -1,4 +1,4 @@
-# Two skills
+# aged-ink toolkit (used by the ink-print skill)
 
 ## A. Print-style STILLS: `fresh` and `aged`
 | style | look | API | CLI |
@@ -36,7 +36,7 @@ python3 ink_seep_anim.py --phases age --from-image fresh.png --out age_from_stil
 - Samples: `examples/fresh_still.png, aged_still.png, anim_seep.mp4, anim_age.mp4, anim_both.mp4`.
 
 
-### Multi-line text / small type (both skills)
+### Multi-line text / small type (stills and videos)
 - `layout_text(W, H, title, subtitle, title_font, sub_font, title_size, sub_size, title_y, sub_y=None, wrap='auto', max_width=0.78, line_spacing=1.42, sub_gap=1.25)`
   - A long title gets a balanced wrap onto the fewest lines that fit within `max_width`; `|` forces breaks.
   - A multi-line block is centred on `title_y`, and the subtitle is placed below it.

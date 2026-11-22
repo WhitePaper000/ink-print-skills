@@ -1,4 +1,5 @@
 numpy
 scipy
 Pillow
+scikit-image
 # also needs ffmpeg on PATH for videos
