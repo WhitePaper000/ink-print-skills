@@ -20,7 +20,7 @@ Before rendering, ask the user which animation they want, with a question widget
 Also confirm the text, unless it's given, and the length if they care about it.
 
 ## Tool
-It's in the `aged-ink/` folder next to this skill folder (`../aged-ink/` relative to this SKILL.md). Read the "Two skills" section of `README.md` first.
+It's in the `aged-ink/` folder inside this skill folder. Read the "Two skills" section of `README.md` first.
 ```
 python3 ink_seep_anim.py --phases seep|age|both --title "…" [--subtitle "…"] --out out.mp4 \
   [--stills dir/] [--fps 60] [--durations …] [--paper papers/<paper> --paper-scale 1.6 --tone vintage] \

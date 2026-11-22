@@ -21,7 +21,7 @@ Before rendering, ask the user which style they want, with a question widget, un
 If they answer vaguely, suggest the one that fits and confirm.
 
 ## Tool
-It's in the `aged-ink/` folder next to this skill folder (`../aged-ink/` relative to this SKILL.md). Read `README.md` first; its "Two skills" section has the commands.
+It's in the `aged-ink/` folder inside this skill folder. Read `README.md` first; its "Two skills" section has the commands.
 - `aged_ink.py` is the module: `fresh_print()`, `composite()`, `load_paper()`, `text_masks()`.
 - `print_still.py` renders title and subtitle text as a still.
 - `age_image.py` handles existing pictures, with `--style fresh|aged`.
