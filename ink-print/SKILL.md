@@ -67,6 +67,7 @@ Everything is in `aged-ink/` inside this skill folder. Run commands from there. 
 ### Existing pictures (secondary path)
 `python3 age_image.py in.png out.png --style fresh|aged --paper papers/<paper> --paper-tone vintage --paper-scale 1.4 [--paper-replace] [--debug]`
 - Extracts dark ink from a lighter ground, sorts it into text, lines and fills, and treats each.
+- `--paper-replace` puts the picture on the user's paper; grey and colour fills are kept as a tint printed onto it. Use `--paper-tone none` to keep a supplied paper's own colour.
 - Best on high-contrast line art, typography, logos and scans. Photos get a lighter overall effect; tell the user.
 - For aged, 0.6–0.7 here is roughly equal to 1.0 on the primary path.
 

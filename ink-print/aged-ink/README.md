@@ -194,7 +194,9 @@ python3 age_image.py in.png out.png --strength 0.7 --seed 1 [--paper paper.png] 
 ```
 `--paper` loads the image through `load_paper`. By default its luminance texture is multiplied into the picture's
 own background, so the picture's colours are kept. `--paper-replace` uses the (toned) paper itself as the
-background, which is best for black-on-white art.
+background, which is best for black-on-white art. Grey and colour fills (box shading, coloured shapes) are not
+treated as ink: they're kept as a tint multiplied into the paper, so they print onto its grain, and outlines
+where a fill meets black ink stay black.
 It works in these steps:
 1. Estimates the background (wide morphological closing) and treats pixels clearly darker than it as ink.
 2. Splits the ink into text (small and large groups, each with its own unit), lines (long or thin) and fills

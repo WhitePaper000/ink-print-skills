@@ -98,6 +98,17 @@ def extract_layers(img, paper=None, seed=1, paper_replace=False):
     thr = max(28.0, 0.35*p995)
     mask = d > thr
     mask = ndi.binary_opening(mask, iterations=1) | (d > thr*1.6)
+    # solid colour/grey fills are not ink: drop mask pixels inside flat, not-near-black regions
+    L = lum(img)
+    m1 = ndi.uniform_filter(L, 9); m2 = ndi.uniform_filter(L*L, 9)
+    flat = np.sqrt(np.maximum(m2 - m1*m1, 0)) < 6
+    sat = img.max(-1) - img.min(-1)
+    Lw = float(np.percentile(L, 97))                       # page white is not a fill
+    fill = flat & ((L > 60) | (sat > 40)) & ((L < Lw - 12) | (sat > 40))
+    fill = ndi.binary_propagation(ndi.binary_opening(fill, iterations=2), mask=fill)   # keep sharp corners
+    # the fill's soft edge too (incl. dark, still-coloured pixels where fill meets an outline), never neutral dark ink
+    fill = ndi.binary_dilation(fill, iterations=4) & ~((L < 70) & (sat < 40))
+    mask &= ~fill
     frac = mask.mean()
     gm = np.hypot(*np.gradient(lum(img)))
     border = mask & ~ndi.binary_erosion(mask)
@@ -109,10 +120,23 @@ def extract_layers(img, paper=None, seed=1, paper_replace=False):
     alpha[~ndi.binary_dilation(mask, iterations=2)] = 0
     ink_rgb = np.where(alpha[..., None] > 0.05, (img - bg*(1 - alpha[..., None]))/np.maximum(alpha[..., None], 0.05), 0)
     dm = ndi.binary_dilation(mask, iterations=2)[..., None]
-    clean_bg = img*(1 - dm) + bg*dm
+    # fill under the ink from the nearest ink-free pixel (the closing-based estimate leaks white into the
+    # corners of dark colour fills)
+    _, (iy, ix) = ndi.distance_transform_edt(dm[..., 0], return_indices=True)
+    clean_bg = ndi.uniform_filter(img[iy, ix], size=(3, 3, 1))
+    clean_bg = img*(1 - dm) + clean_bg*dm
     if paper is not None:
         if paper_replace:
-            clean_bg = paper
+            # keep non-ink tints (grey box fills, colour areas): express the ink-free picture relative to its
+            # page white and multiply that tint into the paper, so fills print onto the paper's grain
+            white = np.percentile(clean_bg.reshape(-1, 3), 97, axis=0)
+            tint = np.clip(clean_bg/np.maximum(white, 1e-6), 0, 1)
+            tint = np.stack([ndi.median_filter(tint[..., c], size=5) for c in range(3)], -1)   # JPEG noise
+            # snap near-white to exactly 1 (no blotches on bare paper), smooth ramp to real tints
+            tl = tint.mean(-1, keepdims=True)
+            w = np.clip((0.975 - tl)/0.03, 0, 1)
+            tint = 1 - (1 - tint)*w
+            clean_bg = paper*tint
         else:                                   # keep colours, add the paper's relief/tone (luminance multiply)
             pl = paper.mean(axis=2, keepdims=True)
             clean_bg = clean_bg*(pl/pl.mean())
@@ -120,6 +144,8 @@ def extract_layers(img, paper=None, seed=1, paper_replace=False):
     mx, mn = img.max(-1), img.min(-1)
     sat = (mx - mn)/np.maximum(mx, 1)
     coloured = (sat > 0.30) & mask
+    # outline pixels blended with a neighbouring colour fill (e.g. box corners) are black ink, not coloured ink
+    coloured &= ~ndi.binary_dilation(fill, iterations=6)
     S = 2 if H*W <= 3.5e6 else 1
     unit = float(np.clip(S*tmed/REF_STROKE, 0.25, 3.0))
     lab_d = ndi.grey_dilation(lab, size=(5, 5))
@@ -155,7 +181,7 @@ def main():
     ap.add_argument('--paper-scale', type=float, default=1.0, help='texture magnification')
     ap.add_argument('--paper-tone', default='none', help="none | vintage | aged | #RRGGBB (colour grade of the paper)")
     ap.add_argument('--paper-replace', action='store_true',
-                    help='use the paper image itself as the background (for black-on-white art); default multiplies '
+                    help='use the paper image itself as the background (for black-on-white art; grey and colour fills are kept as a tint printed onto the paper); default multiplies '
                          'its luminance texture into the original background so the picture\'s colours are kept')
     ap.add_argument('--no-rub', action='store_true', help='disable rubbed patches')
     ap.add_argument('--style', default='aged', choices=['aged', 'fresh'],
